@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timeline/model/timeline_model.dart';
 import 'package:timeline/timeline.dart';
+import 'package:timeline_flow/timeline_flow.dart';
 
 import 'styles.dart';
 
@@ -65,10 +66,34 @@ class _TestPageState extends State<TestPage> {
             ),
             Container(
               height: 450.0,
-              child: TimelineComponent(
-                timelineList: list,
-              ),
-            ),
+              child: TimelineView.builder(
+                
+                  bottom: 40.0,
+                  left: 40.0,
+                  leftLine: 45.0,
+                  bottomLine: 40.0,
+                  itemCount: 20,
+                  
+                  itemBuilder: (index) {
+                    return TimelineTile(
+                      title: Text('text $index'),
+                      subTitle: Text(' sub-title $index'),
+                      icon: Icon(
+                        (index.isEven ? Icons.history : Icons.check),
+                        color: (index.isEven ? Colors.red : Colors.blue),
+                      ),
+                      gap: 0.0,
+                      trailing: Text('15:00'),
+                    );
+                  }),
+            )
+
+            // Container(
+            //   height: 450.0,
+            //   child: TimelineComponent(
+            //     timelineList: list,
+            //   ),
+            // ),
           ],
         ),
       ),
