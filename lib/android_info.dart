@@ -8,6 +8,16 @@ const int MEGABYTE = 1024 * 1024;
 class AndroidInfo {
   static const platform = const MethodChannel('wang.runsheng.test/android');
 
+  static Future<String> getMemorySize() async {
+    var result = "Error";
+    try {
+      result = await platform.invokeMethod('totalInternalMemorySize');
+    } on PlatformException catch (e) {
+      print(e.toString());
+    }
+    return result;
+  }
+
   static showToast(String msg) async {
     try {
       await platform.invokeMethod('showToast', {'msg': msg});

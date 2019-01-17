@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timeline/model/timeline_model.dart';
 import 'package:timeline/timeline.dart';
 import 'package:timeline_flow/timeline_flow.dart';
+import 'android_info.dart';
 
 import 'styles.dart';
 
@@ -22,6 +23,155 @@ class _TestPageState extends State<TestPage> {
     TimelineModel(id: "8", description: "Test 8", title: "Test 8")
   ];
 
+  int current_step = 0;
+
+  List<Step> test_steps = [
+    Step(
+      title: Text('Vibiration'),
+      subtitle: Text('sub title'),
+      content: Text('Is Vibirating?'),
+      state: StepState.complete,
+      isActive: false,
+    ),
+    Step(
+      title: Text('Microphone'),
+      content: Text('Is Micophone Ok?'),
+      state: StepState.editing,
+      isActive: false,
+    ),
+    Step(
+      title: Text('Speaker'),
+      content: Text('Is Speaker OK?'),
+      state: StepState.editing,
+      isActive: false,
+    ),
+    Step(
+      title: Text('GPS'),
+      content: Text('''Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?
+          Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?
+          Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?'''),
+      state: StepState.error,
+      isActive: false,
+    ),
+    Step(
+      title: Text('Compass'),
+      content: SizedBox(
+        height: 180.0,
+        child: Text('Is Compass OK?'),
+      ),
+      state: StepState.indexed,
+      isActive: false,
+    ),
+    Step(
+      title: Text('Wifi'),
+      content: Text('Is Wifi OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Acceleration Sensor'),
+      content: Text('Is Acceleration Sensor OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Gyroscope'),
+      content: Text('Is Gyroscope OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Flash'),
+      content: Text('Is Flash OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Front Camera'),
+      content: Text('Is Front Camera OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Rear Camera'),
+      content: Text('Is Rear Camera OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Telephone'),
+      content: Text('Is Telephone OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Charging'),
+      content: Text('Is Charging OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Touching'),
+      content: Text('Is Touching OK?'),
+      isActive: false,
+    ),
+    Step(
+      title: Text('Display'),
+      content: Text('Is Display OK?'),
+      isActive: false,
+    ),
+  ];
+
+  Future<void> _askedToLead() async {
+    switch (await showDialog<Department>(
+        context: context,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: const Text('Select assignment'),
+            children: <Widget>[
+              SimpleDialogOption(
+                onPressed: () {},
+                child: const Text('Treasuty department'),
+              ),
+              SimpleDialogOption(
+                onPressed: () {},
+                child: const Text('State department'),
+              ),
+            ],
+          );
+        })) {
+      case Department.treasury:
+        break;
+      case Department.state:
+        break;
+    }
+  }
+
+  Future<void> _neverSatisfied() async {
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Rewind and remember'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  Text('You will never be satisfied.'),
+                  Text('You\'re like me. I\'m never satisfied.'),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text('Regret'),
+                onPressed: () {},
+              ),
+              FlatButton(
+                child: Text('Come'),
+                onPressed: () {
+                  AndroidInfo.getMemorySize().then((size) {
+                    print('Android Internal Memory Size: $size');
+                  });
+                },
+              ),
+            ],
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,66 +187,117 @@ class _TestPageState extends State<TestPage> {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            Stack(
-              children: <Widget>[
-                Image.asset('assets/images/testing.gif'),
-                Center(
-                  child: Container(
-                    width: 320.0,
-                    child: RaisedButton(
-                      child: Text(
-                        'Upload',
-                        style: Styles.uploadTextStyle,
-                      ),
-                      color: Colors.white,
-                      splashColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(15.0),
+      body: NestedScrollView(
+        physics: NeverScrollableScrollPhysics(),
+        controller: ScrollController(),
+        headerSliverBuilder: (BuildContext context, bool isInnerBoxScrolled) {
+          return [
+            SliverList(
+              delegate: SliverChildListDelegate([
+                Stack(
+                  alignment: Alignment.topCenter,
+                  children: <Widget>[
+                    Image.asset('assets/images/testing.gif'),
+                    Container(
+                      width: 320.0,
+                      child: Visibility(
+                        visible: false,
+                        child: RaisedButton(
+                          child: Text(
+                            'Upload',
+                            style: Styles.uploadTextStyle,
+                          ),
+                          color: Colors.white,
+                          splashColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15.0),
+                            ),
+                          ),
+                          onPressed: () {
+                            // _askedToLead();
+                            _neverSatisfied();
+                          },
+                        ),
+                        replacement: Text(
+                          'Testing',
+                          textAlign: TextAlign.center,
+                          style: Styles.replacementTextStyle,
                         ),
                       ),
-                      onPressed: () {},
                     ),
-                  ),
-                )
-              ],
-            ),
-            Container(
-              height: 450.0,
-              child: TimelineView.builder(
-                
-                  bottom: 40.0,
-                  left: 40.0,
-                  leftLine: 45.0,
-                  bottomLine: 40.0,
-                  itemCount: 20,
-                  
-                  itemBuilder: (index) {
-                    return TimelineTile(
-                      title: Text('text $index'),
-                      subTitle: Text(' sub-title $index'),
-                      icon: Icon(
-                        (index.isEven ? Icons.history : Icons.check),
-                        color: (index.isEven ? Colors.red : Colors.blue),
+                    Positioned(
+                      bottom: 0.0,
+                      left: 0.0,
+                      right: 0.0,
+                      child: LinearProgressIndicator(
+                        value: 0.05,
                       ),
-                      gap: 0.0,
-                      trailing: Text('15:00'),
-                    );
-                  }),
-            )
-
-            // Container(
-            //   height: 450.0,
-            //   child: TimelineComponent(
-            //     timelineList: list,
-            //   ),
-            // ),
-          ],
+                    ),
+                  ],
+                ),
+              ]),
+            ),
+          ];
+        },
+        body: Stepper(
+          controlsBuilder: (BuildContext context,
+              {VoidCallback onStepContinue, VoidCallback onStepCancel}) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                RaisedButton(
+                  onPressed: onStepContinue,
+                  child: const Text(
+                    'OK',
+                    style: Styles.textWhite,
+                  ),
+                  color: Colors.green,
+                ),
+                SizedBox(
+                  width: 40.0,
+                ),
+                RaisedButton(
+                  onPressed: onStepCancel,
+                  child: const Text(
+                    'Fail',
+                    style: Styles.textWhite,
+                  ),
+                  color: Colors.red,
+                ),
+              ],
+            );
+          },
+          currentStep: this.current_step,
+          steps: test_steps,
+          type: StepperType.vertical,
+          onStepTapped: (step) {
+            setState(() {
+              current_step = step;
+              test_steps[step] = _completeStep(test_steps[step]);
+            });
+          },
+          onStepCancel: () {},
+          onStepContinue: () {
+            setState(() {
+              current_step++;
+            });
+          },
         ),
       ),
     );
   }
+}
+
+Step _completeStep(Step step) {
+  return Step(
+      isActive: true,
+      title: step.title,
+      content: step.content,
+      state: StepState.complete);
+}
+
+enum Department {
+  treasury,
+  state,
 }

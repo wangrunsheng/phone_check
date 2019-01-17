@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
 abstract class Styles {
+
+  static const textWhite = TextStyle(
+    color: Colors.white70,
+  );
+
   static const testModelTitleTextStyle = TextStyle(
     color: Colors.white70,
   );
@@ -13,5 +18,10 @@ abstract class Styles {
   static const uploadTextStyle = TextStyle(
     color: Color.fromARGB(255, 73, 170, 249),
     fontSize: 16.0,
+  );
+
+  static const replacementTextStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 42.0,
   );
 }

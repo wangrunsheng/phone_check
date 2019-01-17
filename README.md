@@ -13,7 +13,7 @@ Some fuctions can be tested in this App:
 - [ ] Micophone
 - [ ] Speaker
 - [ ] GPS
-- [ ] COmpass
+- [ ] Compass
 - [ ] WIFI
 - [ ] Acceleration Sensor
 - [ ] Gyroscope
