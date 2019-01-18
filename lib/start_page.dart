@@ -4,6 +4,7 @@ import 'styles.dart';
 import 'android_info.dart';
 import 'package:qrcode_reader/qrcode_reader.dart';
 import 'test_page.dart';
+import 'test_stepper_page.dart';
 import 'android_test.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -99,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   if (isValid == true) {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (BuildContext context) {
-                      return TestPage();
+                      return TestStepperPage();
                     }));
                   } else {
                     setState(() {

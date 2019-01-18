@@ -5,6 +5,13 @@ import 'package:timeline_flow/timeline_flow.dart';
 import 'android_info.dart';
 
 import 'styles.dart';
+import 'camera_page.dart';
+import 'data/test_steps.dart';
+
+const String font_camera_hero_tag = 'FontCamera';
+const String controls_hero_tag = "ControlsButton";
+const String left_controls_hero_tag = "LeftControlsButton";
+const String right_controls_hero_tag = "RightControlsButton";
 
 class TestPage extends StatefulWidget {
   @override
@@ -25,94 +32,8 @@ class _TestPageState extends State<TestPage> {
 
   int current_step = 0;
 
-  List<Step> test_steps = [
-    Step(
-      title: Text('Vibiration'),
-      subtitle: Text('sub title'),
-      content: Text('Is Vibirating?'),
-      state: StepState.complete,
-      isActive: false,
-    ),
-    Step(
-      title: Text('Microphone'),
-      content: Text('Is Micophone Ok?'),
-      state: StepState.editing,
-      isActive: false,
-    ),
-    Step(
-      title: Text('Speaker'),
-      content: Text('Is Speaker OK?'),
-      state: StepState.editing,
-      isActive: false,
-    ),
-    Step(
-      title: Text('GPS'),
-      content: Text('''Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?
-          Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?
-          Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?Is GPS OK?'''),
-      state: StepState.error,
-      isActive: false,
-    ),
-    Step(
-      title: Text('Compass'),
-      content: SizedBox(
-        height: 180.0,
-        child: Text('Is Compass OK?'),
-      ),
-      state: StepState.indexed,
-      isActive: false,
-    ),
-    Step(
-      title: Text('Wifi'),
-      content: Text('Is Wifi OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Acceleration Sensor'),
-      content: Text('Is Acceleration Sensor OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Gyroscope'),
-      content: Text('Is Gyroscope OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Flash'),
-      content: Text('Is Flash OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Front Camera'),
-      content: Text('Is Front Camera OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Rear Camera'),
-      content: Text('Is Rear Camera OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Telephone'),
-      content: Text('Is Telephone OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Charging'),
-      content: Text('Is Charging OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Touching'),
-      content: Text('Is Touching OK?'),
-      isActive: false,
-    ),
-    Step(
-      title: Text('Display'),
-      content: Text('Is Display OK?'),
-      isActive: false,
-    ),
-  ];
+  double progress = 0.0;
+  String progressPercent = '0%';
 
   Future<void> _askedToLead() async {
     switch (await showDialog<Department>(
@@ -176,7 +97,7 @@ class _TestPageState extends State<TestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Testing'),
+        title: Text('Test'),
         elevation: 0.0,
         titleSpacing: 0.0,
         backgroundColor: Color.fromARGB(255, 73, 170, 249),
@@ -188,7 +109,6 @@ class _TestPageState extends State<TestPage> {
         ],
       ),
       body: NestedScrollView(
-        physics: NeverScrollableScrollPhysics(),
         controller: ScrollController(),
         headerSliverBuilder: (BuildContext context, bool isInnerBoxScrolled) {
           return [
@@ -220,7 +140,7 @@ class _TestPageState extends State<TestPage> {
                           },
                         ),
                         replacement: Text(
-                          'Testing',
+                          progressPercent,
                           textAlign: TextAlign.center,
                           style: Styles.replacementTextStyle,
                         ),
@@ -231,7 +151,7 @@ class _TestPageState extends State<TestPage> {
                       left: 0.0,
                       right: 0.0,
                       child: LinearProgressIndicator(
-                        value: 0.05,
+                        value: progress,
                       ),
                     ),
                   ],
@@ -274,8 +194,19 @@ class _TestPageState extends State<TestPage> {
           onStepTapped: (step) {
             setState(() {
               current_step = step;
+              progress = (step + 1) / 15;
+              progressPercent = '${(progress * 100).toStringAsFixed(2)}%';
               test_steps[step] = _completeStep(test_steps[step]);
             });
+
+            if (step == 9) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (BuildContext context) {
+                  return CameraPage();
+                }),
+              );
+            }
           },
           onStepCancel: () {},
           onStepContinue: () {

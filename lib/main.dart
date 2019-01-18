@@ -6,6 +6,7 @@ import 'package:qrcode_reader/qrcode_reader.dart';
 import 'test_page.dart';
 import 'android_test.dart';
 import 'start_page.dart';
+import 'test_stepper_page.dart';
 
 void main() => runApp(MyApp());
 
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       // home: MyHomePage(title: 'Flutter Demo Home Page'),
-      home: TestPage(),
+      home: TestStepperPage(),
     );
   }
 }

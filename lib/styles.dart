@@ -24,4 +24,9 @@ abstract class Styles {
     color: Colors.white,
     fontSize: 42.0,
   );
+
+  static const textBlack42 = TextStyle(
+    color: Colors.black,
+    fontSize: 42.0,
+  );
 }
