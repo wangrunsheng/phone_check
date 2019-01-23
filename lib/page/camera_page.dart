@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'test_page.dart';
-import 'styles.dart';
+import 'package:phone_check/styles.dart';
 
 class CameraPage extends StatelessWidget {
   @override

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:timeline/model/timeline_model.dart';
-import 'package:timeline/timeline.dart';
-import 'package:timeline_flow/timeline_flow.dart';
-import 'android_info.dart';
+import 'package:phone_check/android_info.dart';
 
-import 'styles.dart';
+import 'package:phone_check/styles.dart';
 import 'camera_page.dart';
-import 'data/test_steps.dart';
+import 'package:phone_check/data/test_steps.dart';
+
+import 'package:phone_check/android_test.dart';
 
 const String font_camera_hero_tag = 'FontCamera';
 const String controls_hero_tag = "ControlsButton";
@@ -19,18 +18,9 @@ class TestPage extends StatefulWidget {
 }
 
 class _TestPageState extends State<TestPage> {
-  final List<TimelineModel> list = [
-    TimelineModel(id: "1", description: "Test 1", title: "Test 1"),
-    TimelineModel(id: "2", description: "Test 2", title: "Test 2"),
-    TimelineModel(id: "3", description: "Test 3", title: "Test 3"),
-    TimelineModel(id: "4", description: "Test 4", title: "Test 4"),
-    TimelineModel(id: "5", description: "Test 5", title: "Test 5"),
-    TimelineModel(id: "6", description: "Test 6", title: "Test 6"),
-    TimelineModel(id: "7", description: "Test 7", title: "Test 7"),
-    TimelineModel(id: "8", description: "Test 8", title: "Test 8")
-  ];
-
   int current_step = 0;
+
+  List<Step> current_steps = test_steps;
 
   double progress = 0.0;
   String progressPercent = '0%';
@@ -93,18 +83,55 @@ class _TestPageState extends State<TestPage> {
         });
   }
 
+  String _chargingStatus = 'Battery status: unkown.';
+
+  List<GlobalKey> _keys;
+
+  @override
+  void initState() {
+    super.initState();
+    AndroidTool.listenCharging(_onEvent, _onError);
+
+    _keys = List<GlobalKey>.generate(
+      current_steps.length,
+      (int i) => GlobalKey(),
+    );
+  }
+
+  void _onEvent(Object event) {
+    setState(() {
+      _chargingStatus =
+          "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
+      current_step++;
+    });
+  }
+
+  void _onError(Object error) {
+    setState(() {
+      _chargingStatus = 'Battery status: unknown.';
+      current_step++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    runTestFunction(current_step);
     return Scaffold(
       appBar: AppBar(
-        title: Text('Test'),
+        title: Text(_chargingStatus),
         elevation: 0.0,
         titleSpacing: 0.0,
         backgroundColor: Color.fromARGB(255, 73, 170, 249),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.refresh),
-            onPressed: () {},
+            onPressed: () {
+              setState(() {
+                print('retest');
+                current_steps = test_steps;
+                current_step = 0;
+              });
+            },
           ),
         ],
       ),
@@ -163,6 +190,16 @@ class _TestPageState extends State<TestPage> {
         body: Stepper(
           controlsBuilder: (BuildContext context,
               {VoidCallback onStepContinue, VoidCallback onStepCancel}) {
+            //  print('current step: $current_step');
+
+            if (current_step == 0) {
+              return Center(
+                child: SizedBox(
+                  height: 20.0,
+                  child: Icon(Icons.refresh),
+                ),
+              );
+            }
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -189,35 +226,56 @@ class _TestPageState extends State<TestPage> {
             );
           },
           currentStep: this.current_step,
-          steps: test_steps,
+          steps: current_steps,
           type: StepperType.vertical,
           onStepTapped: (step) {
-            setState(() {
-              current_step = step;
-              progress = (step + 1) / 15;
-              progressPercent = '${(progress * 100).toStringAsFixed(2)}%';
-              test_steps[step] = _completeStep(test_steps[step]);
-            });
+            // setState(() {
+            //   current_step = step;
+            //   progress = (step + 1) / 15;
+            //   progressPercent = '${(progress * 100).toStringAsFixed(2)}%';
+            //   test_steps[step] = _completeStep(test_steps[step]);
+            // });
 
-            if (step == 9) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (BuildContext context) {
-                  return CameraPage();
-                }),
-              );
-            }
+            // if (step == 9) {
+            //   Navigator.push(
+            //     context,
+            //     MaterialPageRoute(builder: (BuildContext context) {
+            //       return CameraPage();
+            //     }),
+            //   );
+            // }
           },
-          onStepCancel: () {},
+          onStepCancel: () {
+            setState(() {
+              current_steps[current_step] = _failStep(test_steps[current_step]);
+              current_step++;
+              runTestFunction(current_step);
+            });
+          },
           onStepContinue: () {
             setState(() {
+              current_steps[current_step] =
+                  _completeStep(test_steps[current_step]);
               current_step++;
+              runTestFunction(current_step);
             });
+
+            Scrollable.ensureVisible(
+              _keys[current_step].currentContext,
+            );
           },
         ),
       ),
     );
   }
+}
+
+Step _failStep(Step step) {
+  return Step(
+      isActive: true,
+      title: step.title,
+      content: step.content,
+      state: StepState.error);
 }
 
 Step _completeStep(Step step) {
@@ -227,6 +285,8 @@ Step _completeStep(Step step) {
       content: step.content,
       state: StepState.complete);
 }
+
+_testFunction(Function f) => f;
 
 enum Department {
   treasury,

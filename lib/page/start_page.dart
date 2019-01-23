@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'styles.dart';
-import 'android_info.dart';
+import 'package:phone_check/styles.dart';
+import 'package:phone_check/android_info.dart';
 import 'package:qrcode_reader/qrcode_reader.dart';
 import 'test_page.dart';
 import 'test_stepper_page.dart';
-import 'android_test.dart';
+import 'package:phone_check/android_test.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);

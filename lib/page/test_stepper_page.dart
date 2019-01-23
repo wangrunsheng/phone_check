@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'styles.dart';
+import 'package:phone_check/styles.dart';
 import 'camera_page.dart';
-import 'data/test_steps.dart';
+import 'package:phone_check/data/test_steps.dart';
 
 const String font_camera_hero_tag = 'FontCamera';
 const String controls_hero_tag = "ControlsButton";
