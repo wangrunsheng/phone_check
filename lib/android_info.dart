@@ -4,9 +4,10 @@ import 'package:system_info/system_info.dart';
 import 'package:device_info/device_info.dart';
 
 const int MEGABYTE = 1024 * 1024;
+const platform = const MethodChannel('wang.runsheng.test/android');
 
 class AndroidInfo {
-  static const platform = const MethodChannel('wang.runsheng.test/android');
+
 
   static Future<String> getMemorySize() async {
     var result = "Error";

@@ -91,7 +91,7 @@ class _TestPageState extends State<TestPage> {
   void initState() {
     super.initState();
     AndroidTool.listenCharging(_onEvent, _onError);
-
+    AndroidTool.testCall();
     _keys = List<GlobalKey>.generate(
       current_steps.length,
       (int i) => GlobalKey(),
@@ -102,14 +102,14 @@ class _TestPageState extends State<TestPage> {
     setState(() {
       _chargingStatus =
           "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
-      current_step++;
+      //  current_step++;
     });
   }
 
   void _onError(Object error) {
     setState(() {
       _chargingStatus = 'Battery status: unknown.';
-      current_step++;
+      // current_step++;
     });
   }
 
@@ -126,11 +126,12 @@ class _TestPageState extends State<TestPage> {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
-              setState(() {
-                print('retest');
-                current_steps = test_steps;
-                current_step = 0;
-              });
+              AndroidTool.testCall();
+              // setState(() {
+              //   print('retest');
+              //   current_steps = test_steps;
+              //   current_step = 0;
+              // });
             },
           ),
         ],
@@ -192,14 +193,14 @@ class _TestPageState extends State<TestPage> {
               {VoidCallback onStepContinue, VoidCallback onStepCancel}) {
             //  print('current step: $current_step');
 
-            if (current_step == 0) {
-              return Center(
-                child: SizedBox(
-                  height: 20.0,
-                  child: Icon(Icons.refresh),
-                ),
-              );
-            }
+            // if (current_step == 0) {
+            //   return Center(
+            //     child: SizedBox(
+            //       height: 20.0,
+            //       child: Icon(Icons.refresh),
+            //     ),
+            //   );
+            // }
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -248,7 +249,7 @@ class _TestPageState extends State<TestPage> {
           onStepCancel: () {
             setState(() {
               current_steps[current_step] = _failStep(test_steps[current_step]);
-              current_step++;
+              nextStep();
               runTestFunction(current_step);
             });
           },
@@ -256,17 +257,26 @@ class _TestPageState extends State<TestPage> {
             setState(() {
               current_steps[current_step] =
                   _completeStep(test_steps[current_step]);
-              current_step++;
+              
+              nextStep();
               runTestFunction(current_step);
             });
 
             Scrollable.ensureVisible(
-              _keys[current_step].currentContext,
+              _keys[current_step + 1].currentContext,
+              curve: Curves.fastOutSlowIn,
+              duration: kThemeAnimationDuration,
             );
           },
         ),
       ),
     );
+  }
+
+  nextStep() {
+    if (current_step < current_steps.length - 1) {
+      current_step++;
+    }
   }
 }
 

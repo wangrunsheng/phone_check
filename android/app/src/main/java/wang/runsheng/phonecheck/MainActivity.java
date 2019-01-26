@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
 
@@ -15,6 +16,9 @@ import io.flutter.plugin.common.MethodChannel;
 
 
 public class MainActivity extends FlutterActivity {
+
+    private static final String PACKAGE_NAME = "wang.runsheng.phonecheck";
+
     private static final String CHANNEL = "wang.runsheng.test/android";
     private static final String CHARGING_CHANNEL = "wang.runsheng.test/charging";
 
@@ -29,6 +33,10 @@ public class MainActivity extends FlutterActivity {
                     String totalInternalMemorySize = FileUtils.getTotalInternalMemorySize(MainActivity.this);
                     result.success(totalInternalMemorySize);
                 }
+                if (methodCall.method.equals("testCall")) {
+                    Intent intent = new Intent("android.intent.action.CALL", Uri.parse("tel:114"));
+                    startActivityForResult(intent, 1001);
+                }
             }
         });
 
@@ -39,6 +47,7 @@ public class MainActivity extends FlutterActivity {
                     @Override
                     public void onListen(Object o, EventChannel.EventSink eventSink) {
                         chargingStateChangeReceiver = createChargingStateChangeReceiver(eventSink);
+
                         registerReceiver(chargingStateChangeReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     }
 
@@ -65,6 +74,31 @@ public class MainActivity extends FlutterActivity {
                 }
             }
         };
+    }
+
+    private IntentFilter createLocalIntentFilter() {
+        IntentFilter localIntentFilter = new IntentFilter();
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.shake_action");
+
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.mic_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.loudspeaker_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.gps_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.compass_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.wifi_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.gseneor_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.GYRseneor_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.flashLight_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.frontCamera_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.receiver_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.backCamera_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.call_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.electricize_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.backCamera_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.screenSensitive_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.display_action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.onDestroy");
+        localIntentFilter.addAction(PACKAGE_NAME + ".AppContext.ps_action");
+        return localIntentFilter;
     }
 
 }

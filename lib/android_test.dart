@@ -2,15 +2,15 @@
 
 import 'package:vibration/vibration.dart';
 import 'package:flutter/services.dart';
-
-
+import 'android_info.dart';
 
 class AndroidTool {
-  static const EventChannel _eventChannel = EventChannel('wang.runsheng.test/charging');
+  static const EventChannel _eventChannel =
+      EventChannel('wang.runsheng.test/charging');
 
-static listenCharging(Function onEvent, Function onError) {
-  _eventChannel.receiveBroadcastStream().listen(onEvent, onError: onError);
-}
+  static listenCharging(Function onEvent, Function onError) {
+    _eventChannel.receiveBroadcastStream().listen(onEvent, onError: onError);
+  }
 
   static vibrate() {
     print('trying to vibrate the android phone.');
@@ -18,5 +18,11 @@ static listenCharging(Function onEvent, Function onError) {
     Vibration.vibrate(duration: 1000);
   }
 
-  
+  static testCall() async {
+    try {
+      await platform.invokeMethod('testCall');
+    } on PlatformException catch (e) {
+      print(e.toString());
+    }
+  }
 }
