@@ -5,7 +5,9 @@ import 'package:phone_check/styles.dart';
 import 'camera_page.dart';
 import 'package:phone_check/data/test_steps.dart';
 
-import 'package:phone_check/android_test.dart';
+import 'package:phone_check/android_platform.dart';
+
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 const String font_camera_hero_tag = 'FontCamera';
 const String controls_hero_tag = "ControlsButton";
@@ -18,9 +20,9 @@ class TestPage extends StatefulWidget {
 }
 
 class _TestPageState extends State<TestPage> {
-  int current_step = 0;
+  int currentStep = 0;
 
-  List<Step> current_steps = test_steps;
+  List<Step> currentSteps = List.of(test_steps);
 
   double progress = 0.0;
   String progressPercent = '0%';
@@ -68,7 +70,11 @@ class _TestPageState extends State<TestPage> {
             actions: <Widget>[
               FlatButton(
                 child: Text('Regret'),
-                onPressed: () {},
+                onPressed: () {
+                  setState(() {
+                    //currentStep = 0;
+                  });
+                },
               ),
               FlatButton(
                 child: Text('Come'),
@@ -90,10 +96,12 @@ class _TestPageState extends State<TestPage> {
   @override
   void initState() {
     super.initState();
-    AndroidTool.listenCharging(_onEvent, _onError);
-    AndroidTool.testCall();
+
+
+    AndroidPlatform.listenCharging(_onEvent, _onError);
+
     _keys = List<GlobalKey>.generate(
-      current_steps.length,
+      currentSteps.length,
       (int i) => GlobalKey(),
     );
   }
@@ -102,7 +110,12 @@ class _TestPageState extends State<TestPage> {
     setState(() {
       _chargingStatus =
           "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
-      //  current_step++;
+
+      nextStep(true);
+
+      if(currentStep == 0) {
+
+      }
     });
   }
 
@@ -115,7 +128,7 @@ class _TestPageState extends State<TestPage> {
 
   @override
   Widget build(BuildContext context) {
-    runTestFunction(current_step);
+    runTestFunction(currentStep);
     return Scaffold(
       appBar: AppBar(
         title: Text(_chargingStatus),
@@ -126,12 +139,12 @@ class _TestPageState extends State<TestPage> {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
-              AndroidTool.testCall();
-              // setState(() {
-              //   print('retest');
-              //   current_steps = test_steps;
-              //   current_step = 0;
-              // });
+
+               setState(() {
+                 print('retest');
+                 currentSteps = List.of(test_steps);
+                 currentStep = 0;
+               });
             },
           ),
         ],
@@ -193,14 +206,21 @@ class _TestPageState extends State<TestPage> {
               {VoidCallback onStepContinue, VoidCallback onStepCancel}) {
             //  print('current step: $current_step');
 
-            // if (current_step == 0) {
-            //   return Center(
-            //     child: SizedBox(
-            //       height: 20.0,
-            //       child: Icon(Icons.refresh),
-            //     ),
-            //   );
-            // }
+             if (currentStep == 0) {
+               return Center(
+                 child:
+                   SpinKitRotatingCircle(
+                     color: Colors.blue,
+                       size: 50.0,
+                   )
+
+//                 SizedBox(
+//                   height: 20.0,
+//                   child: Icon(Icons.refresh),
+//                 ),
+               );
+             }
+
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -226,8 +246,8 @@ class _TestPageState extends State<TestPage> {
               ],
             );
           },
-          currentStep: this.current_step,
-          steps: current_steps,
+          currentStep: this.currentStep,
+          steps: currentSteps,
           type: StepperType.vertical,
           onStepTapped: (step) {
             // setState(() {
@@ -248,22 +268,18 @@ class _TestPageState extends State<TestPage> {
           },
           onStepCancel: () {
             setState(() {
-              current_steps[current_step] = _failStep(test_steps[current_step]);
-              nextStep();
-              runTestFunction(current_step);
+              nextStep(false);
+              runTestFunction(currentStep);
             });
           },
           onStepContinue: () {
             setState(() {
-              current_steps[current_step] =
-                  _completeStep(test_steps[current_step]);
-              
-              nextStep();
-              runTestFunction(current_step);
+              nextStep(true);
+              runTestFunction(currentStep);
             });
 
             Scrollable.ensureVisible(
-              _keys[current_step + 1].currentContext,
+              _keys[currentStep + 1].currentContext,
               curve: Curves.fastOutSlowIn,
               duration: kThemeAnimationDuration,
             );
@@ -273,9 +289,14 @@ class _TestPageState extends State<TestPage> {
     );
   }
 
-  nextStep() {
-    if (current_step < current_steps.length - 1) {
-      current_step++;
+  nextStep(bool isSuccess) {
+    if (isSuccess) {
+      currentSteps[currentStep] = _completeStep(test_steps[currentStep]);
+    } else {
+      currentSteps[currentStep] = _failStep(test_steps[currentStep]);
+    }
+    if (currentStep < currentSteps.length - 1) {
+      currentStep++;
     }
   }
 }

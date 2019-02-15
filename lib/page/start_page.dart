@@ -5,7 +5,7 @@ import 'package:phone_check/android_info.dart';
 import 'package:qrcode_reader/qrcode_reader.dart';
 import 'test_page.dart';
 import 'test_stepper_page.dart';
-import 'package:phone_check/android_test.dart';
+import 'package:phone_check/android_platform.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);

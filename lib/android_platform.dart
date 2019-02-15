@@ -4,7 +4,7 @@ import 'package:vibration/vibration.dart';
 import 'package:flutter/services.dart';
 import 'android_info.dart';
 
-class AndroidTool {
+class AndroidPlatform {
   static const EventChannel _eventChannel =
       EventChannel('wang.runsheng.test/charging');
 
@@ -16,6 +16,14 @@ class AndroidTool {
     print('trying to vibrate the android phone.');
     //Vibrate.vibrate();
     Vibration.vibrate(duration: 1000);
+  }
+
+  static cancelVibrate() {
+    Vibration.cancel();
+  }
+
+  static testMicrophone() async {
+    await platform.invokeMethod('testMicrophone');
   }
 
   static testCall() async {

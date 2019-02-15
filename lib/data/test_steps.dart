@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phone_check/styles.dart';
 import 'package:phone_check/page/test_page.dart';
 
-import 'package:phone_check/android_test.dart';
+import 'package:phone_check/android_platform.dart';
 
 List<Step> test_steps = [
   Step(
@@ -91,14 +91,14 @@ List<Step> test_steps = [
 ];
 
 List<Function> test_function = [
-  AndroidTool.vibrate(),
+  AndroidPlatform.vibrate(),
   () => print('micophone test'),
 ];
 
 runTestFunction(int step) {
   switch (step) {
     case 0:
-      AndroidTool.vibrate();
+      AndroidPlatform.vibrate();
       break;
     case 12:
       break;
