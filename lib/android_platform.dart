@@ -12,14 +12,21 @@ class AndroidPlatform {
     _eventChannel.receiveBroadcastStream().listen(onEvent, onError: onError);
   }
 
-  static vibrate() {
+  static testVibrate() async {
     print('trying to vibrate the android phone.');
-    //Vibrate.vibrate();
-    Vibration.vibrate(duration: 1000);
+    await platform.invokeMethod('testVibrate');
   }
 
   static cancelVibrate() {
     Vibration.cancel();
+  }
+
+  static testWifi() async {
+    await platform.invokeMethod('testWifi');
+  }
+
+  static testCharging() async {
+    await platform.invokeMethod('testCharging');
   }
 
   static testMicrophone() async {

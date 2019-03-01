@@ -5,7 +5,14 @@ import 'camera_page.dart';
 import 'package:phone_check/data/test_steps.dart';
 
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:phone_check/android_platform.dart';
+
+import 'package:http/http.dart' as http;
+
+import 'package:phone_check/data/test_info.dart';
+
+import 'dart:convert';
+
+import 'package:phone_check/flutter_platform.dart';
 
 const String font_camera_hero_tag = 'FontCamera';
 const String controls_hero_tag = "ControlsButton";
@@ -21,7 +28,7 @@ class TestStepperPage extends StatefulWidget {
 
 class _TestStepperPageState extends State<TestStepperPage> {
   int currentStep = 0;
-  List<Step> currentSteps = List.of(test_steps);
+  List<Step> currentSteps = List.of(testSteps);
 
   double progress = 0.0;
   String progressPercent = '0%';
@@ -30,21 +37,25 @@ class _TestStepperPageState extends State<TestStepperPage> {
 
   bool isFinish = false;
 
+  List<TestResult> testResultList = [];
+
+  int amount = estAmountInt;
+
   @override
   void initState() {
     super.initState();
-    AndroidPlatform.listenCharging(_onEvent, _onError);
+    FlutterPlatform.listenCharging(_onEvent, _onError);
   }
 
   void _onEvent(Object event) {
-    print("the succeed event is: " + event.toString());
-    setState(() {
+    String result = event.toString();
 
+    print("the succeed event is: " + event.toString());
+
+    setState(() {
       nextStep(true);
 
-      if(currentStep == 0) {
-
-      }
+      if (currentStep == 0) {}
     });
   }
 
@@ -56,13 +67,47 @@ class _TestStepperPageState extends State<TestStepperPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (currentStep == 0) {
-      AndroidPlatform.vibrate();
+//    if (currentStep == 0) {
+//
+//    }
+//    if (currentStep == 1) {
+//      AndroidPlatform.testWifi();
+//    }
+//    if (currentStep == 2) {
+//      AndroidPlatform.testCall();
+//    }
+//    if (currentStep == 3) {
+//      AndroidPlatform.testCharging();
+//    }
+//    if (currentStep == 4) {
+//      AndroidPlatform.testMicrophone();
+//    }
+//    if (currentStep == 8) {
+//      AndroidPlatform.testVibrate();
+//    }
+
+    String function = testStepList[currentStep].deductionPoints;
+
+    switch (function) {
+      case 'Wifi':
+        FlutterPlatform.testWifi();
+        break;
+      case 'Gsm Network':
+        FlutterPlatform.testCall();
+        break;
+      case 'Charging Function':
+        FlutterPlatform.testCharging();
+        break;
+      case 'Mic (Recording Test)':
+        FlutterPlatform.testMicrophone();
+        break;
+      case 'Vibrate Function':
+        if (!isFinish) {
+          FlutterPlatform.testVibrate();
+        }
+        break;
     }
-    if (currentStep == 1) {
-      AndroidPlatform.testMicrophone();
-      
-    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Test'),
@@ -74,7 +119,6 @@ class _TestStepperPageState extends State<TestStepperPage> {
             icon: Icon(Icons.refresh),
             onPressed: () {
               setState(() {
-                currentSteps = List.of(test_steps);
                 reset();
               });
             },
@@ -126,19 +170,52 @@ class _TestStepperPageState extends State<TestStepperPage> {
           ),
           Expanded(
             child: Stepper(
-              controlsBuilder: (BuildContext context, {VoidCallback onStepContinue, VoidCallback onStepCancel}) {
+              controlsBuilder: (BuildContext context,
+                  {VoidCallback onStepContinue, VoidCallback onStepCancel}) {
+                String function = testStepList[currentStep].deductionPoints;
 
-                if (currentStep == 1) {
-                  return Center(
-                    child: SpinKitRotatingCircle(
-                      color: Colors.blue,
-                      size: 50.0,
-                    ),
-                  );
+                if (FlutterPlatform.isAndroid) {
+                  switch (function) {
+                    case 'Wifi':
+                    case 'Charging Function':
+                    case 'Mic (Recording Test)':
+                      return Center(
+                        child: SpinKitRotatingCircle(
+                          color: Colors.blue,
+                          size: 50.0,
+                        ),
+                      );
+                  }
+                } else {
+                  switch (function) {
+//                    case 'Wifi':
+                    case 'Charging Function':
+//                    case 'Mic (Recording Test)':
+                      return Center(
+                        child: SpinKitRotatingCircle(
+                          color: Colors.blue,
+                          size: 50.0,
+                        ),
+                      );
+                  }
                 }
 
-                if (currentStep == 14) {
+
+
+
+//                if (currentStep == 1 || currentStep == 3 || currentStep == 4) {
+//                  return Center(
+//                    child: SpinKitRotatingCircle(
+//                      color: Colors.blue,
+//                      size: 50.0,
+//                    ),
+//                  );
+//                }
+
+                if (currentStep == currentSteps.length - 1) {
                   if (isFinish) {
+//                    currentSteps.last = _finishStep(currentSteps.last);
+
                     return Center(
                       child: Container(
                         width: 320.0,
@@ -154,7 +231,35 @@ class _TestStepperPageState extends State<TestStepperPage> {
                               Radius.circular(15.0),
                             ),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            print(testResultList.length);
+
+                            print('test result list is $testResultList');
+
+                            String body =
+                                "{\"username\":\"admin\",\"password\":\"e10adc3949ba59abbe56e057f20f883e\",\"orderno\":\"$orderNumber\",\"amount\":\"$amount\",\"testinfo\":$testResultList,\"timestamp\":1507628932}";
+                            var bodyBytes = Utf8Encoder().convert(body);
+                            String requestData = base64.encode(bodyBytes);
+                            var paramsJson =
+                                "{\"requestdata\":\"$requestData\",\"version\":\"v1.0\"}";
+
+                            String url =
+                                "http://192.168.0.110:8085/mm/order/manualtest";
+
+                            http.post(url, body: paramsJson).then((response) {
+                              print('Response status: ${response.statusCode}');
+                              print('Response body: ${response.body}');
+                              var jsonResponse = jsonDecode(response.body);
+                              if (response.statusCode == 200 &&
+                                  jsonResponse['response'] == 'success') {
+                                Scaffold.of(context).showSnackBar(
+                                    SnackBar(content: Text('Upload success')));
+                              } else {
+                                Scaffold.of(context).showSnackBar(
+                                    SnackBar(content: Text('Upload fail')));
+                              }
+                            });
+                          },
                         ),
                       ),
                     );
@@ -209,26 +314,38 @@ class _TestStepperPageState extends State<TestStepperPage> {
 
   nextStep(bool isSuccess) {
     if (isSuccess) {
-      currentSteps[currentStep] = _completeStep(test_steps[currentStep]);
+      testResultList.add(
+        TestResult(
+            item: testStepList[currentStep].deductionPoints,
+            condition: testStepList[currentStep].conGood),
+      );
+      currentSteps[currentStep] = _completeStep(currentSteps[currentStep]);
     } else {
-      currentSteps[currentStep] = _failStep(test_steps[currentStep]);
+      int bad = int.parse(testStepList[currentStep].amountBad);
+      print('bad score is $bad');
+      amount += bad;
+      testResultList.add(
+        TestResult(
+            item: testStepList[currentStep].deductionPoints,
+            condition: testStepList[currentStep].conBad),
+      );
+      currentSteps[currentStep] = _failStep(currentSteps[currentStep]);
     }
-
-    if (currentStep == 0) {
-      AndroidPlatform.cancelVibrate();
-    }
-
 
     if (currentStep < currentSteps.length - 1) {
       currentStep++;
-      controller.animateTo(72.0 * currentStep,
-          duration: Duration(milliseconds: 500), curve: Curves.ease);
-      progress = currentStep / 15;
+
+      if (currentStep > 1 && currentStep < currentSteps.length + 1 - FlutterPlatform.keepIndex()) {
+        controller.animateTo(72.0 * (currentStep - 1),
+            duration: Duration(milliseconds: 500), curve: Curves.ease);
+      }
+      progress = currentStep / currentSteps.length;
       progressPercent = '${(progress * 100).toStringAsFixed(2)}%';
     } else {
       progress = 1.0;
       progressPercent = '100%';
       isFinish = true;
+      currentSteps.last = _finishStep(currentSteps.last);
     }
   }
 
@@ -248,12 +365,25 @@ class _TestStepperPageState extends State<TestStepperPage> {
         state: StepState.complete);
   }
 
+  Step _finishStep(Step step) {
+    return Step(
+      title: step.title,
+      content: SizedBox(
+        height: 24.0,
+      ),
+      state: step.state,
+    );
+  }
+
   reset() {
+    currentSteps = List.of(testSteps);
     currentStep = 0;
     progress = 0;
     progressPercent = '0%';
     controller.animateTo(0.0,
         duration: Duration(milliseconds: 500), curve: Curves.ease);
     isFinish = false;
+
+    testResultList = [];
   }
 }

@@ -8,9 +8,12 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Vibrator;
 import android.util.Log;
 
 import io.flutter.app.FlutterActivity;
@@ -35,6 +38,14 @@ public class MainActivity extends FlutterActivity {
 
     EventChannel.EventSink mEventSink;
 
+    private boolean isWifiOpen;
+
+    private boolean isCharging = false;
+
+    private boolean isMicrophoneRecording = true;
+
+    private String TESTING = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,16 +53,31 @@ public class MainActivity extends FlutterActivity {
         new MethodChannel(getFlutterView(), CHANNEL).setMethodCallHandler(new MethodChannel.MethodCallHandler() {
             @Override
             public void onMethodCall(MethodCall methodCall, MethodChannel.Result result) {
-                if (methodCall.method.equals("totalInternalMemorySize")) {
+                String method = methodCall.method;
+                if (method.equals("totalInternalMemorySize")) {
                     String totalInternalMemorySize = FileUtils.getTotalInternalMemorySize(MainActivity.this);
                     result.success(totalInternalMemorySize);
                 }
-                if (methodCall.method.equals("testCall")) {
+                if (method.equals("testCall")) {
+                    TESTING = "CALL";
                     Intent intent = new Intent("android.intent.action.CALL", Uri.parse("tel:114"));
                     startActivityForResult(intent, 1001);
                 }
-                if (methodCall.method.equals("testMicrophone")) {
+                if (method.equals("testMicrophone")) {
+                    TESTING = "MIC";
                     testMicrophone();
+                }
+                if (method.equals("testWifi")) {
+                    TESTING = "WIFI";
+                    testWifi();
+                }
+                if (method.equals("testCharging")) {
+                    TESTING = "CHARGING";
+                    testCharging();
+                }
+                if (method.equals("testVibrate")) {
+                    TESTING = "VIBRATE";
+                    testVibrate();
                 }
             }
         });
@@ -66,15 +92,12 @@ public class MainActivity extends FlutterActivity {
 
                         chargingStateChangeReceiver = createChargingStateChangeReceiver(eventSink);
 
-                        IntentFilter localIntentFilter = createLocalIntentFilter();
-
                         registerReceiver(chargingStateChangeReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-//                        registerReceiver(chargingStateChangeReceiver, localIntentFilter);
                     }
 
                     @Override
                     public void onCancel(Object o) {
-                        Log.i("onCancel","unregister");
+                        Log.i("onCancel", "unregister");
 
                         unregisterReceiver(chargingStateChangeReceiver);
                         chargingStateChangeReceiver = null;
@@ -95,22 +118,10 @@ public class MainActivity extends FlutterActivity {
 
                 int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
-//                String result = intent.getStringExtra("action");
-//
-//                Log.i("action", "what is the result" + result);
-//
-//                if (result.equals(PACKAGE_NAME + ".succeed")) {
-//                    Log.i("action", "succeed");
-//                } else {
-//                    Log.i("action", "fail");
-//                }
-
                 if (status == BatteryManager.BATTERY_STATUS_UNKNOWN) {
-                    eventSink.error("UNAVAILABLE", "Charging status unavailable", null);
-
+                    isCharging = false;
                 } else {
-                    boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
-                    eventSink.success(isCharging ? "charging" : "discharging");
+                    isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
                 }
             }
         };
@@ -118,7 +129,7 @@ public class MainActivity extends FlutterActivity {
 
     private IntentFilter createLocalIntentFilter() {
         IntentFilter localIntentFilter = new IntentFilter();
-        localIntentFilter.addAction(PACKAGE_NAME + "action");
+        localIntentFilter.addAction(PACKAGE_NAME + ".action");
         localIntentFilter.addAction(PACKAGE_NAME + ".shake_action");
 
         localIntentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -144,6 +155,27 @@ public class MainActivity extends FlutterActivity {
         return localIntentFilter;
     }
 
+    private void testWifi() {
+        mTestCountDownTimer = new TestCountDownTimer();
+        mTestCountDownTimer.start();
+        isWifiOpen = openWifi();
+    }
+
+    private boolean openWifi() {
+        Log.i("wifi", "open wifi");
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        boolean b = true;
+        if (!wifiManager.isWifiEnabled()) {
+            b = wifiManager.setWifiEnabled(true);
+        }
+        return b;
+    }
+
+    private void testCharging() {
+        mTestCountDownTimer = new TestCountDownTimer();
+        mTestCountDownTimer.start();
+    }
+
     private void testMicrophone() {
         Log.i("start", "testMicrophone");
 
@@ -156,10 +188,19 @@ public class MainActivity extends FlutterActivity {
         mTestCountDownTimer.start();
     }
 
+    private void testVibrate() {
+        mTestCountDownTimer = new TestCountDownTimer();
+        mTestCountDownTimer.start();
+        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            vibrator.vibrate(1200);
+        }
+    }
+
     public class TestCountDownTimer extends CountDownTimer {
 
         public TestCountDownTimer() {
-            super(200, 6);
+            super(1500, 6);
         }
 
         public TestCountDownTimer(long millisInFuture, long countDownInterval) {
@@ -168,16 +209,35 @@ public class MainActivity extends FlutterActivity {
 
         @Override
         public void onTick(long l) {
-            Log.i("tag", "tick tick tick tick");
+//            Log.i("tag", "tick tick tick tick");
         }
 
         @Override
         public void onFinish() {
             Log.i("Timer", "Countdown Finished.");
 
-            Intent intent = new Intent(PACKAGE_NAME + ".action");
-            intent.putExtra("action", PACKAGE_NAME + ".succeed");
-            sendBroadcast(intent);
+            if (isWifiOpen && TESTING.equals("WIFI")) {
+                mEventSink.success("success open wifi");
+            } else if (TESTING.equals("WIFI")) {
+                mEventSink.error("FAIL", "fail to open wifi", null);
+            }
+
+            if (isCharging && TESTING.equals("CHARGING")) {
+                mEventSink.success("charging is ok");
+            } else if (TESTING.equals("CHARGING")) {
+                mEventSink.error("FAIL", "charging is fail", null);
+            }
+
+            if (isMicrophoneRecording && TESTING.equals("MIC")) {
+                mEventSink.success("microphone can recording");
+            } else if (TESTING.equals("MIC")) {
+                mEventSink.error("FAIL", "microphone recording fail", null);
+            }
+
+//            if (TESTING.equals("VIBRATE")) {
+//                mEventSink.success("always vibrating");
+//            }
+
         }
     }
 
@@ -191,7 +251,8 @@ public class MainActivity extends FlutterActivity {
             if (null != intent.getStringExtra("action")) {
                 Log.i("action", "sent");
 
-                mEventSink.success(intent.getStringExtra("action"));
+//                mEventSink.success(intent.getStringExtra("action"));
+
             }
         }
     }
@@ -212,19 +273,22 @@ public class MainActivity extends FlutterActivity {
         public void run() {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.CUPCAKE) {
                 try {
+                    isMicrophoneRecording = true;
                     int i = AudioRecord.getMinBufferSize(frequency, channelConfiguration, audioEncoding) * 2;
                     int j = AudioTrack.getMinBufferSize(frequency, channelConfiguration, audioEncoding);
                     audioRecord = new AudioRecord(1, frequency, channelConfiguration, audioEncoding, i);
                     audioTrack = new AudioTrack(3, frequency, channelConfiguration, audioEncoding, j * 2, 1);
                     byte[] arrayOfByte = new byte[i];
                     audioRecord.startRecording();
+
                 } catch (Exception e) {
+                    isMicrophoneRecording = false;
                     isStart = false;
                     mRecordThread = null;
                     setVolumeControlStream(0);
-                    Intent intent = new Intent(PACKAGE_NAME + ".mic_action");
-                    intent.putExtra("action", PACKAGE_NAME + ".fail");
-                    sendBroadcast(intent);
+
+                    Log.i("mic", "microphone failed");
+
                     e.printStackTrace();
                 }
             }
