@@ -16,6 +16,7 @@ import 'package:phone_check/data/test_info.dart';
 import 'package:phone_check/data/test_steps.dart';
 
 import 'package:phone_check/flutter_platform.dart';
+import 'package:phone_check/common/http.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -30,6 +31,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String model = 'Unknown';
 
   Future<String> _barcodeString;
+
+  BuildContext innerContext;
 
   bool isValid = false;
 
@@ -67,6 +70,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
+          Container(
+            color: Color.fromARGB(255, 82, 191, 46),
+          ),
           Image.asset('assets/images/start_test_gif.gif'),
           Center(
             child: Column(
@@ -86,6 +92,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       (BuildContext context, AsyncSnapshot<String> snapshot) {
                     print('========isValid is : $isValid');
 
+                    if (innerContext == null) {
+                      innerContext = context;
+                    }
+
+                    print('snapshot.data : ${snapshot.data}');
                     if (snapshot.data != null && !isValid) {
                       getTestContent(snapshot.data);
                     }
@@ -108,32 +119,29 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: image,
                 onPressed: () {
                   print('flat button is pressed.');
-                  //  AndroidInfo.showToast('Toast from Android');
-                  // setState(() {
-                  //   image = startBtnImage;
-                  // });
                   if (isValid == true) {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (BuildContext context) {
                       return TestStepperPage();
                     }));
                   } else {
+                    var barcodeResult = null;
+                    if (FlutterPlatform.isAndroid) {
+                      barcodeResult = new QRCodeReader()
+                          .setAutoFocusIntervalInMs(200)
+                          .setForceAutoFocus(true)
+                          .setTorchEnabled(true)
+                          .setHandlePermissions(true)
+                          .setExecuteAfterPermissionGranted(true)
+                          .scan();
+                    } else {
+                      print('scan ios');
+                      barcodeResult = new QRCodeReader().scan();
+                      print('scan ios finished');
+                    }
+                    print('after bar');
                     setState(() {
-                      print('error bar');
-                      if (FlutterPlatform.isAndroid) {
-                        _barcodeString = new QRCodeReader()
-                            .setAutoFocusIntervalInMs(200)
-                            .setForceAutoFocus(true)
-                            .setTorchEnabled(true)
-                            .setHandlePermissions(true)
-                            .setExecuteAfterPermissionGranted(true)
-                            .scan();
-                      } else {
-                        print('scan ios');
-                        _barcodeString = new QRCodeReader().scan();
-                        print('scan ios finished');
-                      }
-                      print('after bar');
+                      _barcodeString = barcodeResult;
                     });
                   }
                 },
@@ -146,9 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void getTestContent(value) async {
-    orderNumber = "20190218095627083964167";
-
-//    orderNumber = value;
+    orderNumber = value;
 
     print("value is $value");
 
@@ -159,8 +165,9 @@ class _MyHomePageState extends State<MyHomePage> {
     print(requestData);
     var paramsJson = "{\"requestdata\":\"$requestData\",\"version\":\"v1.0\"}";
 
-    String url =
-        "http://192.168.0.110:8085/mm/order/manualtest?params=$paramsJson";
+    String domain = Domain().value;
+
+    String url = "$domain:8085/mm/order/manualtest?params=$paramsJson";
 
     var response = await http.get(url);
     if (response.statusCode == 200) {
@@ -206,18 +213,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
           isValid = true;
         } else {
-          Scaffold.of(context).showSnackBar(
-              SnackBar(content: Text('Wrong Number')));
+          print('empty snack bar shown......');
+          Scaffold.of(innerContext)
+              .showSnackBar(SnackBar(content: Text('Empty Testing Item')));
           isValid = false;
         }
       } else {
-        Scaffold.of(context).showSnackBar(
-            SnackBar(content: Text('Response Fail')));
+        Scaffold.of(innerContext)
+            .showSnackBar(SnackBar(content: Text('Response Fail')));
         isValid = false;
       }
     } else {
-      Scaffold.of(context).showSnackBar(
-          SnackBar(content: Text('Response Fail')));
+      Scaffold.of(innerContext)
+          .showSnackBar(SnackBar(content: Text('Response Fail')));
       isValid = false;
       print(response.statusCode);
     }
@@ -226,9 +234,9 @@ class _MyHomePageState extends State<MyHomePage> {
         image = startBtnImage;
       });
     } else {
-      setState(() {
-        image = qrBtnImage;
-      });
+//      setState(() {
+//        image = qrBtnImage;
+//      });
     }
   }
 }

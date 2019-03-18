@@ -25,6 +25,13 @@ dependencies:
   vibration: 1.0.1
   flutter_spinkit: "^3.1.0"
   http: ^0.12.0+1
+  camera: ^0.4.2
+  path_provider: ^0.5.0+1
+  video_player: ^0.10.0+2
+  assets_audio_player: ^1.0.1
+#  permission: ^0.1.1
+#  permission_handler: '^2.2.0'
+#  simple_permissions: ^0.1.9
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -52,6 +59,14 @@ flutter:
    - assets/images/start_qr_btn.png
    - assets/images/start_test_gif.gif
    - assets/images/testing.gif
+   - assets/audios/brother.mp3
+   - assets/audios/music.ogg
+   - assets/audios/pass.ogg
+   - assets/audios/fail.ogg
+   - assets/audios/test.mp3
+   - assets/audios/wmusic.wav
+   - assets/audios/wpass.wav
+   - assets/audios/wfail.wav
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

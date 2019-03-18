@@ -35,6 +35,14 @@ class iOSPlatform {
     _methodChannel.invokeMethod('testCharging');
   }
 
+  static void switchToReceiver() {
+    _methodChannel.invokeMethod('switchToReceiver');
+  }
+
+  static void switchToSpeaker() {
+    _methodChannel.invokeMethod('switchToSpeaker');
+  }
+
   static String _modelConvert() {
     if (machine == "i386") return "Simulator";
 

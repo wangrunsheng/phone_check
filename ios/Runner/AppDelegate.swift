@@ -1,5 +1,6 @@
 import UIKit
 import Flutter
+import AVFoundation
 
 enum ChannelName {
     static let method = "phonecheck.runsheng.wang/method"
@@ -87,7 +88,11 @@ enum MyFlutterErrorCode {
                 self.testCall()
             } else if ("testCharging" == call.method) {
                 self.testCharging()
-            } else {
+            }  else if ("switchToReceiver" == call.method) {
+                self.switchToReceiver()
+            } else if ("switchToSpeaker" == call.method) {
+                self.switchToSpeaker()
+            }else {
                 result(FlutterMethodNotImplemented);
             }
         })
@@ -121,6 +126,25 @@ enum MyFlutterErrorCode {
     
     private func testCharging() {
         countdownTimer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(stopCountdownTimer), userInfo: nil, repeats: true)
+    }
+    
+    private func switchToReceiver() {
+        print("try to switch to Receiver")
+        do {
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayAndRecord)
+            // AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.none)
+        } catch  {
+            print("switch to Receiver fail")
+        }
+    }
+    
+    private func switchToSpeaker() {
+        print("try to switch to Speaker")
+        do {
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
+        } catch  {
+            print("switch to Speaker fail")
+        }
     }
     
     @objc func stopCountdownTimer() {

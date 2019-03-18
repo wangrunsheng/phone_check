@@ -14,12 +14,15 @@ import 'dart:convert';
 
 import 'package:phone_check/flutter_platform.dart';
 
+import 'screen_page.dart';
+import 'camera_page.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:phone_check/common/http.dart';
+
 const String font_camera_hero_tag = 'FontCamera';
 const String controls_hero_tag = "ControlsButton";
 const String left_controls_hero_tag = "LeftControlsButton";
 const String right_controls_hero_tag = "RightControlsButton";
-
-
 
 class TestStepperPage extends StatefulWidget {
   @override
@@ -106,6 +109,17 @@ class _TestStepperPageState extends State<TestStepperPage> {
           FlutterPlatform.testVibrate();
         }
         break;
+      case 'Lcd Display':
+        break;
+      case 'Bluetooth':
+        FlutterPlatform.testBluetooth();
+        break;
+      case 'Gps Function':
+        FlutterPlatform.testGsp();
+        break;
+      case 'Infra Red Test':
+        FlutterPlatform.testInfraRed();
+        break;
     }
 
     return Scaffold(
@@ -179,12 +193,22 @@ class _TestStepperPageState extends State<TestStepperPage> {
                     case 'Wifi':
                     case 'Charging Function':
                     case 'Mic (Recording Test)':
+                    case 'Bluetooth':
+                    case 'Gps Function':
+                    case 'Infra Red Test':
                       return Center(
                         child: SpinKitRotatingCircle(
                           color: Colors.blue,
                           size: 50.0,
                         ),
                       );
+                      break;
+                    case 'Lcd Display':
+//                      Navigator.push(context,
+//                          MaterialPageRoute(builder: (BuildContext context) {
+//                        return ScreenPage();
+//                      }));
+                      break;
                   }
                 } else {
                   switch (function) {
@@ -199,9 +223,6 @@ class _TestStepperPageState extends State<TestStepperPage> {
                       );
                   }
                 }
-
-
-
 
 //                if (currentStep == 1 || currentStep == 3 || currentStep == 4) {
 //                  return Center(
@@ -243,8 +264,9 @@ class _TestStepperPageState extends State<TestStepperPage> {
                             var paramsJson =
                                 "{\"requestdata\":\"$requestData\",\"version\":\"v1.0\"}";
 
-                            String url =
-                                "http://192.168.0.110:8085/mm/order/manualtest";
+                            String domain = Domain().value;
+
+                            String url = "$domain:8085/mm/order/manualtest";
 
                             http.post(url, body: paramsJson).then((response) {
                               print('Response status: ${response.statusCode}');
@@ -313,7 +335,64 @@ class _TestStepperPageState extends State<TestStepperPage> {
   }
 
   nextStep(bool isSuccess) {
+    if (currentStep < currentSteps.length - 1) {
+      String function = testStepList[currentStep + 1].deductionPoints;
+      print('next function is $function');
+
+      if (function == 'Lcd Display') {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (BuildContext context) {
+          return ScreenPage();
+        }));
+      }
+
+      if (function == 'Front Camera Test') {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (BuildContext context) {
+          return CameraPage(
+            direction: 'front',
+          );
+        }));
+      }
+
+      if (function == 'Rear Camera Test') {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (BuildContext context) {
+          return CameraPage(
+            direction: 'back',
+          );
+        }));
+      }
+
+      if (function == 'Headset Test') {
+        _showHeadsetTestDialog();
+      }
+
+      if (function == 'Buzzer/ Speakerphone Test') {
+        _assetsAudioPlayer.open(music);
+        _assetsAudioPlayer.play();
+        _showSpeakerTestDialog();
+      }
+
+      if (function == 'Vibrate Function') {
+        _showVibrateTestDialog();
+      }
+
+      if (function == 'Fingerprint Test') {
+        _showFingerprintTestDialog();
+      }
+
+      if (function == 'Receiver Test') {
+        if (FlutterPlatform.isAndroid) {
+          _showReceiverTestDialog();
+        }
+
+      }
+    }
+
     if (isSuccess) {
+      _assetsAudioPlayer.open(pass);
+      _assetsAudioPlayer.play();
       testResultList.add(
         TestResult(
             item: testStepList[currentStep].deductionPoints,
@@ -321,6 +400,8 @@ class _TestStepperPageState extends State<TestStepperPage> {
       );
       currentSteps[currentStep] = _completeStep(currentSteps[currentStep]);
     } else {
+      _assetsAudioPlayer.open(fail);
+      _assetsAudioPlayer.play();
       int bad = int.parse(testStepList[currentStep].amountBad);
       print('bad score is $bad');
       amount += bad;
@@ -335,7 +416,8 @@ class _TestStepperPageState extends State<TestStepperPage> {
     if (currentStep < currentSteps.length - 1) {
       currentStep++;
 
-      if (currentStep > 1 && currentStep < currentSteps.length + 1 - FlutterPlatform.keepIndex()) {
+      if (currentStep > 1 &&
+          currentStep < currentSteps.length + 1 - FlutterPlatform.keepIndex()) {
         controller.animateTo(72.0 * (currentStep - 1),
             duration: Duration(milliseconds: 500), curve: Curves.ease);
       }
@@ -385,5 +467,274 @@ class _TestStepperPageState extends State<TestStepperPage> {
     isFinish = false;
 
     testResultList = [];
+  }
+
+  final AssetsAudioPlayer _assetsAudioPlayer = AssetsAudioPlayer();
+
+  final AssetsAudio pass = AssetsAudio(
+    asset: 'wpass.wav',
+    folder: 'assets/audios',
+  );
+
+  final AssetsAudio fail = AssetsAudio(
+    asset: 'wfail.wav',
+    folder: 'assets/audios',
+  );
+
+  final AssetsAudio music = AssetsAudio(
+    asset: 'wmusic.wav',
+    folder: 'assets/audios',
+  );
+
+  Future<void> _showHeadsetTestDialog() async {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () {
+              print('dialog not pop.');
+            },
+            child: AlertDialog(
+              title: Text('Headset Test'),
+              content: Container(
+                height: 150.0,
+                child: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Text('Play music after plug in a Headset'),
+                      Container(
+                        height: 100.0,
+                        child: Center(
+                          child: FlatButton.icon(
+                              onPressed: () {
+                                print('play music');
+                                _assetsAudioPlayer.open(music);
+                                _assetsAudioPlayer.play();
+                              },
+                              icon: Icon(
+                                Icons.play_arrow,
+                                size: 50.0,
+                                color: Colors.blue,
+                              ),
+                              label: Text('Play')),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    _assetsAudioPlayer.stop();
+                    Navigator.pop(context);
+                  },
+                  child: Text('Go Back'),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future<void> _showSpeakerTestDialog() async {
+    _assetsAudioPlayer.open(music);
+    _assetsAudioPlayer.play();
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () {
+              print('dialog not pop.');
+            },
+            child: AlertDialog(
+              title: Text('Buzzer/Speakerphone Test'),
+              content: Container(
+                height: 150.0,
+                child: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Text('Click to play music'),
+                      Container(
+                        height: 100.0,
+                        child: Center(
+                          child: FlatButton.icon(
+                              onPressed: () {
+                                print('play music');
+                                _assetsAudioPlayer.open(music);
+                                _assetsAudioPlayer.play();
+                              },
+                              icon: Icon(
+                                Icons.play_arrow,
+                                size: 50.0,
+                                color: Colors.blue,
+                              ),
+                              label: Text('Play')),
+
+//                          SpinKitWave(
+//                            color: Colors.blue,
+//                            size: 50.0,
+//                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    _assetsAudioPlayer.stop();
+                    Navigator.pop(context);
+                  },
+                  child: Text('Go Back'),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future<void> _showVibrateTestDialog() async {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () {
+              print('dialog not pop.');
+            },
+            child: AlertDialog(
+              title: Text('Vibrate Function'),
+              content: Container(
+                height: 150.0,
+                child: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Text('Phone is vibrating...'),
+                      Container(
+                        height: 100.0,
+                        child: Center(
+                          child: SpinKitRipple(
+                            color: Colors.blue,
+                            size: 50.0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Go Back'),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future<void> _showFingerprintTestDialog() async {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () {
+              print('dialog not pop.');
+            },
+            child: AlertDialog(
+              title: Text('Fingerprint Test'),
+              content: Container(
+                height: 150.0,
+                child: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Text('Please set fingerprint first'),
+                      Container(
+                        height: 100.0,
+                        child: Center(
+                          child: Icon(
+                            Icons.fingerprint,
+                            size: 50.0,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Go Back'),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future<void> _showReceiverTestDialog() async {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () {
+              print('dialog not pop.');
+            },
+            child: AlertDialog(
+              title: Text('Receiver Test'),
+              content: Container(
+                height: 150.0,
+                child: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Text('Play music and put the phone by your ear'),
+                      Container(
+                        height: 100.0,
+                        child: Center(
+                          child: FlatButton.icon(
+                              onPressed: () {
+                                print('play music');
+                                FlutterPlatform.switchToReceiver();
+                                _assetsAudioPlayer.open(music);
+                                _assetsAudioPlayer.play();
+                              },
+                              icon: Icon(
+                                Icons.play_arrow,
+                                size: 50.0,
+                                color: Colors.blue,
+                              ),
+                              label: Text('Play')),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    _assetsAudioPlayer.stop();
+                    FlutterPlatform.switchToSpeaker();
+                    Navigator.pop(context);
+                  },
+                  child: Text('Go Back'),
+                ),
+              ],
+            ),
+          );
+        });
   }
 }

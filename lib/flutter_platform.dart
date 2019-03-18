@@ -62,11 +62,53 @@ class FlutterPlatform {
     }
   }
 
+  static void testBluetooth() {
+    print('testing bluetooth print from flutter. ');
+    if (isAndroid) {
+      AndroidPlatform.testBluetooth();
+    }
+  }
+
   static int keepIndex() {
     if (isAndroid) {
       return 0;
     } else {
       return iOSPlatform.keepIndex();
+    }
+  }
+
+  static void testGsp() {
+    if (isAndroid) {
+      AndroidPlatform.testGsp();
+    }
+  }
+
+  static void testInfraRed() {
+    if (isAndroid) {
+      AndroidPlatform.testInfraRed();
+    }
+  }
+
+  static void switchToSpeaker() {
+    if (isAndroid) {
+      AndroidPlatform.switchToSpeaker();
+    } else {
+      iOSPlatform.switchToSpeaker();
+    }
+  }
+
+  static void switchToReceiver() {
+    if (isAndroid) {
+      AndroidPlatform.switchToReceiver();
+    } else {
+      iOSPlatform.switchToReceiver();
+    }
+  }
+
+  static void testReceiver() {
+    if (isAndroid) {
+      AndroidPlatform.testReceiver();
+    } else {
     }
   }
 }
