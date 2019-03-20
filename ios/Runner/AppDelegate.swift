@@ -132,6 +132,7 @@ enum MyFlutterErrorCode {
         print("try to switch to Receiver")
         do {
             try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayAndRecord)
+            print("'switch to receiver success'")
             // AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSessionPortOverride.none)
         } catch  {
             print("switch to Receiver fail")

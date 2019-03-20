@@ -55,7 +55,6 @@ class AndroidPlatform {
 //
 //    });
 
-
       await platform.invokeMethod('testCall');
     } on PlatformException catch (e) {
       print(e.toString());
@@ -84,5 +83,13 @@ class AndroidPlatform {
 
   static void testReceiver() async {
     await platform.invokeMethod('testReceiver');
+  }
+
+  static void testNFC() async {
+    await platform.invokeMethod('testNFC');
+  }
+
+  static void testIRIS() async {
+    await platform.invokeMethod('testIRIS');
   }
 }

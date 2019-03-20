@@ -18,6 +18,7 @@ import 'screen_page.dart';
 import 'camera_page.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:phone_check/common/http.dart';
+import 'dart:io';
 
 const String font_camera_hero_tag = 'FontCamera';
 const String controls_hero_tag = "ControlsButton";
@@ -44,6 +45,8 @@ class _TestStepperPageState extends State<TestStepperPage> {
 
   int amount = estAmountInt;
 
+  bool isChargingDialogShow = false;
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +58,11 @@ class _TestStepperPageState extends State<TestStepperPage> {
 
     print("the succeed event is: " + event.toString());
 
+    if (isChargingDialogShow) {
+      Navigator.pop(context);
+      isChargingDialogShow = false;
+    }
+
     setState(() {
       nextStep(true);
 
@@ -63,6 +71,10 @@ class _TestStepperPageState extends State<TestStepperPage> {
   }
 
   void _onError(Object error) {
+    if (isChargingDialogShow) {
+      Navigator.pop(context);
+      isChargingDialogShow = false;
+    }
     setState(() {
       nextStep(false);
     });
@@ -106,7 +118,7 @@ class _TestStepperPageState extends State<TestStepperPage> {
         break;
       case 'Vibrate Function':
         if (!isFinish) {
-          FlutterPlatform.testVibrate();
+//          FlutterPlatform.testVibrate();
         }
         break;
       case 'Lcd Display':
@@ -119,6 +131,12 @@ class _TestStepperPageState extends State<TestStepperPage> {
         break;
       case 'Infra Red Test':
         FlutterPlatform.testInfraRed();
+        break;
+      case 'Nfc Test':
+        FlutterPlatform.testNFC();
+        break;
+      case 'Iris Test':
+        FlutterPlatform.testIRIS();
         break;
     }
 
@@ -196,6 +214,8 @@ class _TestStepperPageState extends State<TestStepperPage> {
                     case 'Bluetooth':
                     case 'Gps Function':
                     case 'Infra Red Test':
+                    case 'Nfc Test':
+                    case 'Iris Test':
                       return Center(
                         child: SpinKitRotatingCircle(
                           color: Colors.blue,
@@ -274,8 +294,9 @@ class _TestStepperPageState extends State<TestStepperPage> {
                               var jsonResponse = jsonDecode(response.body);
                               if (response.statusCode == 200 &&
                                   jsonResponse['response'] == 'success') {
-                                Scaffold.of(context).showSnackBar(
-                                    SnackBar(content: Text('Upload success')));
+//                                Scaffold.of(context).showSnackBar(
+//                                    SnackBar(content: Text('Upload success')));
+                              _showUploadSuccessDialog();
                               } else {
                                 Scaffold.of(context).showSnackBar(
                                     SnackBar(content: Text('Upload fail')));
@@ -386,7 +407,10 @@ class _TestStepperPageState extends State<TestStepperPage> {
         if (FlutterPlatform.isAndroid) {
           _showReceiverTestDialog();
         }
+      }
 
+      if (function == 'Charging Function') {
+        _showChargingTestDialog();
       }
     }
 
@@ -598,6 +622,7 @@ class _TestStepperPageState extends State<TestStepperPage> {
   }
 
   Future<void> _showVibrateTestDialog() async {
+    FlutterPlatform.startVibration();
     return showDialog(
         context: context,
         barrierDismissible: false,
@@ -630,6 +655,7 @@ class _TestStepperPageState extends State<TestStepperPage> {
               actions: <Widget>[
                 FlatButton(
                   onPressed: () {
+                    FlutterPlatform.stopVibration();
                     Navigator.pop(context);
                   },
                   child: Text('Go Back'),
@@ -731,6 +757,98 @@ class _TestStepperPageState extends State<TestStepperPage> {
                     Navigator.pop(context);
                   },
                   child: Text('Go Back'),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future<void> _showChargingTestDialog() async {
+    isChargingDialogShow = true;
+
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () {
+              print('dialog not pop.');
+            },
+            child: AlertDialog(
+              title: Text('Charging Function'),
+              content: Container(
+                height: 150.0,
+                child: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Text('Please plug in the USB.'),
+                      Container(
+                        height: 100.0,
+                        child: Center(
+                            child: Icon(
+                          Icons.usb,
+                          color: Colors.blue,
+                          size: 50.0,
+                        )),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    isChargingDialogShow = false;
+                  },
+                  child: Text('Go Back'),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future<void> _showUploadSuccessDialog() async {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WillPopScope(
+            onWillPop: () {
+              print('dialog not pop.');
+            },
+            child: AlertDialog(
+              title: Text('Upload Success'),
+              content: Container(
+                height: 150.0,
+                child: Center(
+                  child: Column(
+                    children: <Widget>[
+                      Text('Please click the exit button to finish testing.'),
+                      Container(
+                        height: 100.0,
+                        child: Center(
+                          child: Icon(
+                            Icons.check,
+                            color: Colors.blue,
+                            size: 50.0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  onPressed: () {
+                    _assetsAudioPlayer.stop();
+                    Navigator.pop(context);
+                    exit(0);
+                  },
+                  child: Text('Exit'),
                 ),
               ],
             ),

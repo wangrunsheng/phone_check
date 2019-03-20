@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:io';
 import 'package:phone_check/styles.dart';
 import 'package:phone_check/android_info.dart';
 import 'package:qrcode_reader/qrcode_reader.dart';
@@ -39,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var image;
 
   var startBtnImage = Image.asset(
-    'assets/images/start_test_btn.png',
+    'assets/images/start_test_btn_en.png',
     width: 220.0,
   );
 
@@ -117,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
                 child: image,
-                onPressed: () {
+                onPressed: () async {
                   print('flat button is pressed.');
                   if (isValid == true) {
                     Navigator.push(context,
@@ -125,24 +126,38 @@ class _MyHomePageState extends State<MyHomePage> {
                       return TestStepperPage();
                     }));
                   } else {
-                    var barcodeResult = null;
-                    if (FlutterPlatform.isAndroid) {
-                      barcodeResult = new QRCodeReader()
-                          .setAutoFocusIntervalInMs(200)
-                          .setForceAutoFocus(true)
-                          .setTorchEnabled(true)
-                          .setHandlePermissions(true)
-                          .setExecuteAfterPermissionGranted(true)
-                          .scan();
-                    } else {
-                      print('scan ios');
-                      barcodeResult = new QRCodeReader().scan();
-                      print('scan ios finished');
+                    try {
+                      final result = await InternetAddress.lookup('baidu.com');
+                      if (result.isNotEmpty &&
+                          result[0].rawAddress.isNotEmpty) {
+                        var barcodeResult = null;
+                        if (FlutterPlatform.isAndroid) {
+                          barcodeResult = new QRCodeReader()
+                              .setAutoFocusIntervalInMs(200)
+                              .setForceAutoFocus(true)
+                              .setTorchEnabled(true)
+                              .setHandlePermissions(true)
+                              .setExecuteAfterPermissionGranted(true)
+                              .scan();
+                        } else {
+                          print('scan ios');
+                          barcodeResult = new QRCodeReader().scan();
+                          print('scan ios finished');
+                        }
+                        print('after bar');
+                        setState(() {
+                          _barcodeString = barcodeResult;
+                        });
+                      }
+                    } catch (e) {
+                      print(e);
+                      Scaffold.of(innerContext).showSnackBar(SnackBar(
+                        content: Text(
+                          'Internet error, please check your Wi-Fi or GPRS.',
+                        ),
+                        backgroundColor: Colors.red,
+                      ));
                     }
-                    print('after bar');
-                    setState(() {
-                      _barcodeString = barcodeResult;
-                    });
                   }
                 },
               ),

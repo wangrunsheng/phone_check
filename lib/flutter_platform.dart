@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:phone_check/android_info.dart';
 import 'ios_platform.dart';
 import 'android_platform.dart';
+import 'package:vibration/vibration.dart';
 
 class FlutterPlatform {
   static bool isAndroid = true;
@@ -62,6 +63,18 @@ class FlutterPlatform {
     }
   }
 
+  static void startVibration() {
+    print('vibration started...');
+
+    Vibration.vibrate(duration: 10000);
+  }
+
+  static void stopVibration() {
+    print('vibration is canceled...');
+
+    Vibration.cancel();
+  }
+
   static void testBluetooth() {
     print('testing bluetooth print from flutter. ');
     if (isAndroid) {
@@ -108,7 +121,18 @@ class FlutterPlatform {
   static void testReceiver() {
     if (isAndroid) {
       AndroidPlatform.testReceiver();
-    } else {
+    } else {}
+  }
+
+  static void testNFC() {
+    if (isAndroid) {
+      AndroidPlatform.testNFC();
+    }
+  }
+
+  static void testIRIS() {
+    if (isAndroid) {
+      AndroidPlatform.testIRIS();
     }
   }
 }

@@ -143,6 +143,16 @@ public class MainActivity extends FlutterActivity {
                     testReceiver();
                 }
 
+                if (method.equals("testNFC")) {
+                    TESTING = "NFC";
+                    testNFC();
+                }
+
+                if (method.equals("testIRIS")) {
+                    TESTING = "IRIS";
+                    testIRIS();
+                }
+
                 if (method.equals("switchToReceiver")) {
                     switchToReceiver();
                 }
@@ -350,7 +360,7 @@ public class MainActivity extends FlutterActivity {
     }
 
     private void testCharging() {
-        mTestCountDownTimer = new TestCountDownTimer();
+        mTestCountDownTimer = new TestCountDownTimer(6000);
         mTestCountDownTimer.start();
     }
 
@@ -387,6 +397,18 @@ public class MainActivity extends FlutterActivity {
         mTestCountDownTimer.start();
 
         consumerIrManager = (ConsumerIrManager) getSystemService(Context.CONSUMER_IR_SERVICE);
+
+    }
+
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+    private void testNFC() {
+        mTestCountDownTimer = new TestCountDownTimer();
+        mTestCountDownTimer.start();
+    }
+
+    private void testIRIS() {
+        mTestCountDownTimer = new TestCountDownTimer();
+        mTestCountDownTimer.start();
 
     }
 
@@ -462,6 +484,29 @@ public class MainActivity extends FlutterActivity {
                     mEventSink.success("has infrared");
                 } else {
                     mEventSink.error("FAIL", "does not have  infrared", null);
+                }
+            }
+
+            if (TESTING.equals("NFC")) {
+                PackageManager packageManager = getPackageManager();
+                boolean isHasNFC = packageManager.hasSystemFeature(PackageManager.FEATURE_NFC);
+
+                if (isHasNFC) {
+                    mEventSink.success("has NFC");
+                } else {
+                    mEventSink.error("FAIL", "does not have  NFC", null);
+                }
+
+            }
+
+            if (TESTING.equals("IRIS")) {
+                try {
+                    Intent intent = new Intent("com.android.iris.invoke");
+                    startActivity(intent);
+                    mEventSink.success("has IRIS");
+                } catch (Exception e) {
+                    Log.e("IRIS", e.toString());
+                    mEventSink.error("FAIL", "does not have  IRIS", null);
                 }
             }
 

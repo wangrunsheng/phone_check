@@ -11,6 +11,11 @@ abstract class Styles {
     fontSize: 42.0,
   );
 
+  static const textBlackLarge = TextStyle(
+    color: Colors.black54,
+    fontSize: 42.0,
+  );
+
   static const testModelTitleTextStyle = TextStyle(
     color: Colors.white70,
   );
